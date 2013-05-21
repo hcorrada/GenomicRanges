@@ -52,6 +52,7 @@ Collate: utils.R
 	inter-range-methods.R
 	setops-methods.R
 	findOverlaps-methods.R
+	findOverlaps-GIntervalTree-methods.R
 	nearest-methods.R
 	encodeOverlaps-methods.R
 	coverage-methods.R
