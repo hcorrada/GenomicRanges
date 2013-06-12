@@ -4,6 +4,8 @@
 
 \alias{validCigar}
 
+\alias{CIGAR_OPS}
+
 \alias{explodeCigarOps}
 \alias{explodeCigarOpLengths}
 \alias{cigarToRleList}
@@ -15,6 +17,8 @@
 \alias{cigarQNarrow}
 \alias{cigarNarrow}
 
+\alias{cigarRangesOnReference}
+\alias{cigarRangesOnQuery}
 \alias{cigarToIRanges}
 \alias{cigarToIRangesListByAlignment}
 \alias{cigarToIRangesListByRName}
@@ -38,6 +42,9 @@
 }
 
 \usage{
+## Supported CIGAR operations:
+CIGAR_OPS
+
 ## Transform CIGARs into other useful representations:
 explodeCigarOps(cigar)
 explodeCigarOpLengths(cigar)
@@ -53,6 +60,14 @@ cigarQNarrow(cigar, start=NA, end=NA, width=NA)
 cigarNarrow(cigar, start=NA, end=NA, width=NA)
 
 ## From CIGARs to ranges:
+cigarRangesOnReference(cigar, pos, flag=NULL, ops=CIGAR_OPS,
+                       drop.empty.ranges=FALSE, reduce.ranges=FALSE,
+                       with.ops=FALSE)
+
+cigarRangesOnQuery(cigar, flag=NULL, ops=CIGAR_OPS,
+                   drop.empty.ranges=FALSE, reduce.ranges=FALSE,
+                   with.ops=FALSE)
+
 cigarToIRanges(cigar,
                drop.D.ranges=FALSE, drop.empty.ranges=FALSE,
                reduce.ranges=TRUE)
@@ -64,6 +79,7 @@ cigarToIRangesListByAlignment(cigar, pos, flag=NULL,
 cigarToIRangesListByRName(cigar, rname, pos, flag=NULL,
                           drop.D.ranges=FALSE, drop.empty.ranges=FALSE,
                           reduce.ranges=TRUE)
+
 ## Summarize CIGARs:
 cigarOpTable(cigar)
 
@@ -74,11 +90,10 @@ queryLocs2refLocs(qlocs, cigar, pos, flag=NULL)
 
 \arguments{
   \item{cigar}{
-    A character vector/factor containing the extended CIGAR
-    string for each read.
-    For \code{cigarToIRanges} and \code{queryLoc2refLoc},
-    this must be a single string (i.e. a character vector/factor
-    of length 1).
+    A character vector or factor containing the extended CIGAR strings.
+    It can be of arbitrary length except for \code{cigarToIRanges} and
+    \code{queryLoc2refLoc} which only accept a single CIGAR (as a character
+    vector or factor of length 1).
   }
   \item{before.hard.clipping}{
     Should the returned widths be the lengths of the reads before
@@ -95,22 +110,6 @@ queryLocs2refLocs(qlocs, cigar, pos, flag=NULL)
     "solved" according to the rules of the SEW (Start/End/Width)
     interface (see \code{?\link[IRanges]{solveUserSEW}} for the details).
   }
-  \item{drop.D.ranges}{
-    Should the ranges corresponding to a deletion from the
-    reference (encoded with a D in the CIGAR) be dropped?
-    By default we keep them to be consistent with the pileup tool
-    from SAMtools.
-    Note that, when \code{drop.D.ranges} is \code{TRUE}, then Ds
-    and Ns in the CIGAR are equivalent.
-  }
-  \item{drop.empty.ranges}{
-    Should empty ranges be dropped?
-  }
-  \item{reduce.ranges}{
-    Should adjacent ranges coming from the same cigar be merged or not?
-    Using \code{TRUE} (the default) can significantly reduce the
-    size of the returned object.
-  }
   \item{pos}{
     An integer vector containing the 1-based leftmost
     position/coordinate for each (eventually clipped) read
@@ -119,12 +118,39 @@ queryLocs2refLocs(qlocs, cigar, pos, flag=NULL)
   \item{flag}{
     \code{NULL} or an integer vector containing the SAM flag for
     each read.
-    According to the SAM specs, flag bit 0x004 has the following
-    meaning: when bit 0x004 is ON then "the query sequence itself
-    is unmapped".
-    When \code{flag} is provided,
-    \code{cigarToIRangesListByAlignment} and
-    \code{cigarToIRangesListByRName} ignore these reads.
+
+    According to the SAM Spec v1.4, flag bit 0x4 is the only reliable place
+    to tell whether a segment (or read) is mapped (bit is 0) or not (bit
+    is 1). If \code{flag} is supplied, then \code{cigarRangesOnReference},
+    \code{cigarRangesOnQuery}, and \code{cigarToIRangesListByAlignment},
+    translate unmapped reads to empty list elements in the returned
+    \link[IRanges]{IRangesList} object.
+    If \code{flag} is supplied, \code{cigarToIRangesListByRName} just
+    ignore these reads.
+  }
+  \item{ops}{
+    Character vector containing the CIGAR operations to translate to ranges.
+    By default, all CIGAR operations are translated.
+  }
+  \item{with.ops}{
+    \code{TRUE} or \code{FALSE} indicating whether the returned ranges should
+    be named with their corresponding CIGAR operation.
+  }
+  \item{drop.empty.ranges}{
+    Should empty ranges be dropped?
+  }
+  \item{reduce.ranges}{
+    Should adjacent ranges coming from the same cigar be merged or not?
+    Using \code{TRUE} can significantly reduce the size of the returned
+    object.
+  }
+  \item{drop.D.ranges}{
+    Should the ranges corresponding to a deletion from the
+    reference (encoded with a D in the CIGAR) be dropped?
+    By default we keep them to be consistent with the pileup tool
+    from SAMtools.
+    Note that, when \code{drop.D.ranges} is \code{TRUE}, then Ds
+    and Ns in the CIGAR are equivalent.
   }
   \item{rname}{
     A character vector/factor containing the name of the
@@ -145,6 +171,21 @@ queryLocs2refLocs(qlocs, cigar, pos, flag=NULL)
 }
 
 \value{
+  \code{CIGAR_OPS} is a predefined character vector containing the supported
+  CIGAR operations: M, I, D, N, S, H, P, =, X. See p. 4 of the SAM Spec v1.4
+  at \url{http://samtools.sourceforge.net/} for the list of CIGAR operations
+  and their meanings.
+
+  For \code{explodeCigarOps} and \code{explodeCigarOpLengths}:
+  Both functions return a list of the same length as \code{cigar} where each
+  list element is a character vector (for \code{explodeCigarOps}) or an integer
+  vector (for \code{explodeCigarOpLengths}). The 2 lists have the same shape,
+  that is, same \code{length()} and same \code{elementLengths()}. The i-th
+  character vector in the list returned by \code{explodeCigarOps} contains one
+  single-letter string per CIGAR operation in \code{cigar[i]}. The i-th integer
+  vector in the list returned by \code{explodeCigarOpLengths} contains the
+  corresponding CIGAR operation lengths. Zero-length operations are ignored.
+
   For \code{cigarToRleList}: A \link[IRanges]{CompressedRleList} object.
 
   For \code{splitCigar}: A list of the same length as \code{cigar}
@@ -172,14 +213,20 @@ queryLocs2refLocs(qlocs, cigar, pos, flag=NULL)
   would need to be added to the POS field of a SAM/BAM file as a
   consequence of this cigar narrowing.
 
+  For \code{cigarRangesOnReference} and \code{cigarRangesOnQuery}:
+  An \link[IRanges]{IRangesList} object (more precisely a
+  \link[IRanges]{CompressedIRangesList} object) of the same length
+  as \code{cigar}.
+
   For \code{cigarToIRanges}: An \link[IRanges]{IRanges} object
   describing where the bases in the read align with respect to
   an imaginary reference sequence assuming that the leftmost
   aligned base is at position 1 in the reference (i.e. at the
   first position).
 
-  For \code{cigarToIRangesListByAlignment}: A
-  \link[IRanges]{CompressedIRangesList} object of the same length
+  For \code{cigarToIRangesListByAlignment}:
+  An \link[IRanges]{IRangesList} object (more precisely a
+  \link[IRanges]{CompressedIRangesList} object) of the same length
   as \code{cigar}.
 
   For \code{cigarToIRangesListByRName}: A named \link[IRanges]{IRangesList}
@@ -210,15 +257,21 @@ queryLocs2refLocs(qlocs, cigar, pos, flag=NULL)
 }
 
 \seealso{
-  \link[IRanges]{IRanges-class},
-  \link[IRanges]{IRangesList-class},
-  \code{\link[IRanges]{coverage}},
-  \link[IRanges]{RleList-class}
+  \itemize{
+    \item The \link{GAlignments} container for storing a set of genomic
+          alignments.
+    \item The \link[IRanges]{IRanges}, \link[IRanges]{IRangesList}, and
+          \link[IRanges]{RleList} classes in the IRanges package.
+    \item The \code{\link[IRanges]{coverage}} generic and methods for
+          computing the coverage across a set of ranges or genomic ranges.
+  }
 }
 
 \examples{
+CIGAR_OPS
+
 ## ---------------------------------------------------------------------
-## A. EXAMPLES ON A SINGLE CIGAR
+## A. ON A SINGLE CIGAR
 ## ---------------------------------------------------------------------
 cigar1 <- "3H15M55N4M2I6M2D5M6S"
 
@@ -250,7 +303,7 @@ cigarToIRanges(cigar1, reduce.ranges=FALSE)
 cigarToIRanges(cigar1, drop.D.ranges=TRUE)
 
 ## ---------------------------------------------------------------------
-## B. ON A CIGAR VECTOR OF LENGTH > 1
+## B. ON A VECTOR CONTAINING MORE THAN ONE CIGAR
 ## ---------------------------------------------------------------------
 cigar2 <- c("40M", cigar1, "2S10M2000N15M", "3H25M5H")
 
@@ -262,7 +315,21 @@ splitCigar(cigar2)
 
 ## From CIGARs to ranges:
 pos <- c(1, 1001, 1,  351)
-cigarToIRangesListByAlignment(cigar2, pos)
+cigarRangesOnReference(cigar2, pos, with.ops=TRUE)
+cigarRangesOnQuery(cigar2, with.ops=TRUE)
+
+res1a <- cigarToIRangesListByAlignment(cigar2, pos)
+res1b <- cigarRangesOnReference(cigar2, pos,
+                                ops=setdiff(CIGAR_OPS, "N"),
+                                reduce.ranges=TRUE)
+stopifnot(identical(res1a, res1b))
+
+res2a <- cigarToIRangesListByAlignment(cigar2, pos, drop.D.ranges=TRUE)
+res2b <- cigarRangesOnReference(cigar2, pos,
+                                ops=setdiff(CIGAR_OPS, c("D", "N")),
+                                reduce.ranges=TRUE)
+stopifnot(identical(res2a, res2b))
+
 rname <- c("chr6", "chr6", "chr2", "chr6")
 cigarToIRangesListByRName(cigar2, rname, pos)
 

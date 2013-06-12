@@ -3,13 +3,65 @@
 ### -------------------------------------------------------------------------
 
 
+### See p. 4 of the SAM Spec v1.4 at http://samtools.sourceforge.net/ for the
+### list of CIGAR operations and their meanings.
+CIGAR_OPS <- c("M", "I", "D", "N", "S", "H", "P", "=", "X")
+
+.normarg_cigar <- function(cigar)
+{
+    if (is.factor(cigar))
+        cigar <- as.character(cigar)
+    if (!is.character(cigar))
+        stop("'cigar' must be a character vector or factor")
+    cigar
+}
+
+.normarg_pos <- function(pos, cigar)
+{
+    if (!is.numeric(pos))
+        stop("'pos' must be a vector of integers")
+    if (!is.integer(pos))
+        pos <- as.integer(pos)
+    if (length(cigar) != length(pos))
+        stop("'cigar' and 'pos' must have the same length")
+    pos
+}
+
+.normarg_flag <- function(flag, cigar)
+{
+    if (!is.null(flag)) {
+        if (!is.numeric(flag))
+            stop("'flag' must be NULL or a vector of integers")
+        if (!is.integer(flag))
+            flag <- as.integer(flag)
+        if (length(cigar) != length(flag))
+            stop("'cigar' and 'flag' must have the same length")
+    }
+    flag
+}
+
+.normarg_ops <- function(ops)
+{
+    if (!is.character(ops))
+        stop("'ops' must be a character vector")
+    if (any(is.na(ops)))
+        stop("'ops' cannot contain NAs")
+    if (length(ops) == 1L) {
+        ops <- strsplit(ops, NULL, fixed=TRUE)[[1L]]
+    } else if (any(nchar(ops) != 1L)) {
+        stop("when 'length(ops) != 1', all its elements ",
+             "must be single letters")
+    }
+    if (anyDuplicated(ops))
+        stop("'ops' cannot contain duplicated letters")
+    if (!all(ops %in% CIGAR_OPS))
+        stop("'ops' contains invalid CIGAR operations")
+    ops
+}
+ 
 validCigar <- function(cigar)
 {
-    if (!is.character(cigar)) {
-        if (!is.factor(cigar) || !is.character(levels(cigar)))
-            stop("'cigar' must be a character vector/factor")
-        cigar <- as.vector(cigar)
-    }
+    cigar <- .normarg_cigar(cigar)
     .Call2("valid_cigar", cigar, 0L, PACKAGE="GenomicRanges")
 }
 
@@ -20,21 +72,13 @@ validCigar <- function(cigar)
 
 explodeCigarOps <- function(cigar)
 {
-    if (!is.character(cigar)) {
-        if (!is.factor(cigar))
-            stop("'cigar' must be a character vector or factor")
-        cigar <- as.character(cigar)
-    }
+    cigar <- .normarg_cigar(cigar)
     .Call2("explode_cigar_ops", cigar, PACKAGE="GenomicRanges")
 }
 
 explodeCigarOpLengths <- function(cigar)
 {
-    if (!is.character(cigar)) {
-        if (!is.factor(cigar))
-            stop("'cigar' must be a character vector or factor")
-        cigar <- as.character(cigar)
-    }
+    cigar <- .normarg_cigar(cigar)
     .Call2("explode_cigar_op_lengths", cigar, PACKAGE="GenomicRanges")
 }
 
@@ -64,11 +108,7 @@ cigarToRleList <- function(cigar)
 
 splitCigar <- function(cigar)
 {
-    if (!is.character(cigar)) {
-        if (!is.factor(cigar) || !is.character(levels(cigar)))
-            stop("'cigar' must be a character vector/factor")
-        cigar <- as.vector(cigar)
-    }
+    cigar <- .normarg_cigar(cigar)
     .Call2("split_cigar", cigar, PACKAGE="GenomicRanges")
 }
 
@@ -79,11 +119,7 @@ splitCigar <- function(cigar)
 
 cigarToQWidth <- function(cigar, before.hard.clipping=FALSE)
 {
-    if (!is.character(cigar)) {
-        if (!is.factor(cigar) || !is.character(levels(cigar)))
-            stop("'cigar' must be a character vector/factor")
-        cigar <- as.vector(cigar)
-    }
+    cigar <- .normarg_cigar(cigar)
     if (!isTRUEorFALSE(before.hard.clipping))
         stop("'before.hard.clipping' must be TRUE or FALSE")
     .Call2("cigar_to_qwidth",
@@ -93,11 +129,7 @@ cigarToQWidth <- function(cigar, before.hard.clipping=FALSE)
 
 cigarToWidth <- function(cigar)
 {
-    if (!is.character(cigar)) {
-        if (!is.factor(cigar) || !is.character(levels(cigar)))
-            stop("'cigar' must be a character vector/factor")
-        cigar <- as.vector(cigar)
-    }
+    cigar <- .normarg_cigar(cigar)
     .Call2("cigar_to_width", cigar, PACKAGE="GenomicRanges")
 }
 
@@ -139,11 +171,49 @@ cigarNarrow <- function(cigar, start=NA, end=NA, width=NA)
 ### From CIGARs to ranges
 ###
 
+cigarRangesOnReference <- function(cigar, pos, flag=NULL, ops=CIGAR_OPS,
+                                   drop.empty.ranges=FALSE,
+                                   reduce.ranges=FALSE,
+                                   with.ops=FALSE)
+{
+    cigar <- .normarg_cigar(cigar)
+    pos <- .normarg_pos(pos, cigar)
+    flag <- .normarg_flag(flag, cigar)
+    ops <- .normarg_ops(ops)
+    if (!isTRUEorFALSE(drop.empty.ranges))
+        stop("'drop.empty.ranges' must be TRUE or FALSE")
+    if (!isTRUEorFALSE(reduce.ranges))
+        stop("'reduce.ranges' must be TRUE or FALSE")
+    if (!isTRUEorFALSE(with.ops))
+        stop("'with.ops' must be TRUE or FALSE")
+    .Call2("cigar_ranges_on_reference",
+           cigar, pos, flag, ops, drop.empty.ranges, reduce.ranges, with.ops,
+           PACKAGE="GenomicRanges")
+}
+
+cigarRangesOnQuery <- function(cigar, flag=NULL, ops=CIGAR_OPS,
+                               drop.empty.ranges=FALSE,
+                               reduce.ranges=FALSE,
+                               with.ops=FALSE)
+{
+    cigar <- .normarg_cigar(cigar)
+    flag <- .normarg_flag(flag, cigar)
+    ops <- .normarg_ops(ops)
+    if (!isTRUEorFALSE(drop.empty.ranges))
+        stop("'drop.empty.ranges' must be TRUE or FALSE")
+    if (!isTRUEorFALSE(reduce.ranges))
+        stop("'reduce.ranges' must be TRUE or FALSE")
+    if (!isTRUEorFALSE(with.ops))
+        stop("'with.ops' must be TRUE or FALSE")
+    .Call2("cigar_ranges_on_query",
+           cigar, flag, ops, drop.empty.ranges, reduce.ranges, with.ops,
+           PACKAGE="GenomicRanges")
+}
+
 cigarToIRanges <- function(cigar, drop.D.ranges=FALSE,
                            drop.empty.ranges=FALSE, reduce.ranges=TRUE)
 {
-    if (is.factor(cigar) && is.character(levels(cigar)))
-        cigar <- as.vector(cigar)
+    cigar <- .normarg_cigar(cigar)
     if (!isSingleString(cigar))
         stop("'cigar' must be a single string")
     if (!isTRUEorFALSE(drop.D.ranges))
@@ -162,25 +232,9 @@ cigarToIRangesListByAlignment <- function(cigar, pos, flag=NULL,
                                           drop.empty.ranges=FALSE,
                                           reduce.ranges=TRUE)
 {
-    if (!is.character(cigar)) {
-        if (!is.factor(cigar) || !is.character(levels(cigar)))
-            stop("'cigar' must be a character vector/factor")
-        cigar <- as.vector(cigar)
-    }
-    if (!is.numeric(pos))
-        stop("'pos' must be a vector of integers")
-    if (!is.integer(pos))
-        pos <- as.integer(pos)
-    if (length(cigar) != length(pos))
-        stop("'cigar' and 'pos' must have the same length")
-    if (!is.null(flag)) {
-        if (!is.numeric(flag))
-            stop("'flag' must be NULL or a vector of integers")
-        if (!is.integer(flag))
-            flag <- as.integer(flag)
-        if (length(cigar) != length(flag))
-            stop("'cigar' and 'flag' must have the same length")
-    }
+    cigar <- .normarg_cigar(cigar)
+    pos <- .normarg_pos(pos, cigar)
+    flag <- .normarg_flag(flag, cigar)
     if (!isTRUEorFALSE(drop.D.ranges))
         stop("'drop.D.ranges' must be TRUE or FALSE")
     if (!isTRUEorFALSE(drop.empty.ranges))
@@ -198,30 +252,16 @@ cigarToIRangesListByRName <- function(cigar, rname, pos, flag=NULL,
                                       drop.empty.ranges=FALSE,
                                       reduce.ranges=TRUE)
 {
-    if (!is.character(cigar)) {
-        if (!is.factor(cigar) || !is.character(levels(cigar)))
-            stop("'cigar' must be a character vector/factor")
-        cigar <- as.vector(cigar)
-    }
+    cigar <- .normarg_cigar(cigar)
     if (!is.factor(rname) || !is.character(levels(rname))) {
         if (!is.character(rname))
             stop("'rname' must be a character vector/factor")
         rname <- as.factor(rname)
     }
-    if (!is.numeric(pos))
-        stop("'pos' must be a vector of integers")
-    if (!is.integer(pos))
-        pos <- as.integer(pos)
-    if (length(cigar) != length(rname) || length(cigar) != length(pos))
-        stop("'cigar', 'rname' and 'pos' must have the same length")
-    if (!is.null(flag)) {
-        if (!is.numeric(flag))
-            stop("'flag' must be NULL or a vector of integers")
-        if (!is.integer(flag))
-            flag <- as.integer(flag)
-        if (length(cigar) != length(flag))
-            stop("'cigar' and 'flag' must have the same length")
-    }
+    if (length(cigar) != length(rname))
+        stop("'cigar' and 'rname' must have the same length")
+    pos <- .normarg_pos(pos, cigar)
+    flag <- .normarg_flag(flag, cigar)
     if (!isTRUEorFALSE(drop.D.ranges))
         stop("'drop.D.ranges' must be TRUE or FALSE")
     if (!isTRUEorFALSE(drop.empty.ranges))
@@ -232,10 +272,11 @@ cigarToIRangesListByRName <- function(cigar, rname, pos, flag=NULL,
                     cigar, rname, pos, flag,
                     drop.D.ranges, drop.empty.ranges, reduce.ranges,
                     PACKAGE="GenomicRanges")
-    if (length(C_ans) < 200L)
+    if (length(C_ans) < 200L) {
         IRangesList(C_ans, compress=FALSE)
-    else
+    } else {
         IRangesList(C_ans, compress=TRUE)
+    }
 }
 
 
@@ -245,11 +286,7 @@ cigarToIRangesListByRName <- function(cigar, rname, pos, flag=NULL,
 
 cigarOpTable <- function(cigar)
 {
-    if (!is.character(cigar)) {
-        if (!is.factor(cigar) || !is.character(levels(cigar)))
-            stop("'cigar' must be a character vector/factor")
-        cigar <- as.vector(cigar)
-    }
+    cigar <- .normarg_cigar(cigar)
     .Call2("cigar_op_table", cigar, PACKAGE="GenomicRanges")
 }
 
