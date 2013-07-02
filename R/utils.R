@@ -11,10 +11,10 @@
 makePrettyMatrixForCompactPrinting <- function(x, makeNakedMat.FUN)
 {
     lx <- length(x)
-    nhead <- getOption("showHeadLines", default=5L)
-    ntail <- getOption("showTailLines", default=5L)
+    nhead <- get_showHeadLines()
+    ntail <- get_showTailLines()
 
-    if (lx < (nhead+ntail+1L)) {
+    if (lx < (nhead + ntail + 1L)) {
         ans <- makeNakedMat.FUN(x)
         ans_rownames <- .rownames(names(x), lx)
     } else {

@@ -95,13 +95,16 @@ setMethod("rname", "GAlignments", function(x) seqnames(x))
 
 setMethod("cigar", "GAlignments", function(x) x@cigar)
 
-setMethod("width", "GAlignments", function(x) cigarToWidth(x@cigar))
+setMethod("width", "GAlignments",
+    function(x) cigarWidthOnReferenceSpace(x@cigar)
+)
+
 setMethod("start", "GAlignments", function(x, ...) x@start)
 setMethod("end", "GAlignments", function(x, ...) {x@start + width(x) - 1L})
 
 setMethod("strand", "GAlignments", function(x) x@strand)
 
-setMethod("qwidth", "GAlignments", function(x) cigarToQWidth(x@cigar))
+setMethod("qwidth", "GAlignments", function(x) cigarWidthOnQuerySpace(x@cigar))
 
 setMethod("ngap", "GAlignments",
     function(x) {unname(elementLengths(rglist(x))) - 1L}
@@ -478,8 +481,8 @@ setMethod("rglist", "GAlignments",
     {
         if (!isTRUEorFALSE(order.as.in.query))
             stop("'reorder.ranges.from5to3' must be TRUE or FALSE")
-        ans <- cigarToIRangesListByAlignment(x@cigar, x@start,
-                                             drop.D.ranges=drop.D.ranges)
+        ans <- extractAlignmentRangesOnReference(x@cigar, x@start,
+                                                 drop.D.ranges=drop.D.ranges)
         if (order.as.in.query)
             ans <- revElements(ans, strand(x) == "-")
         names(ans) <- names(x)
