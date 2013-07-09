@@ -17,7 +17,7 @@ make_gr <- function()
 
 test_GIntervalTree_fully_specified_coercion <- function() {
   gr=make_gr()
-  git=as(g,"GIntervalTree")
+  git=as(gr,"GIntervalTree")
   
   checkIdentical(seqinfo(git), seqinfo(gr))
   checkIdentical(seqnames(git), seqnames(gr))

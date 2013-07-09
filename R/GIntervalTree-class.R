@@ -94,6 +94,9 @@ setMethod("length", "GIntervalTree", function(x) length(ranges(x)))
 #' @importClassesFrom GenomicRanges GRanges
 setAs("GRanges", "GIntervalTree",
       function(from) {
+        if (any(isCircular(from), na.rm=TRUE))
+          stop("'GIntervalTree' objects not supported for circular sequences")
+
         out=new2("GIntervalTree",
                 strand=strand(from),
                 elementMetadata=mcols(from),
