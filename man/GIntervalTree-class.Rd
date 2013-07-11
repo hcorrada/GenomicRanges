@@ -11,11 +11,26 @@
 %\alias{updateObject,GRanges-method}
 
 % Coercion:
-\alias{coerce,GenomicRanges,GIntervalTree-method}
+\alias{coerce,GRanges,GIntervalTree-method}
+\alias{coerce,GIntervalTree,GRanges-method}
 
 % Accessors:
+\alias{seqnames,GIntervalTree-method}
 \alias{ranges,GIntervalTree-method}
+\alias{strand,GIntervalTree-method}
+\alias{elementMetadata,GIntervalTree-method}
+\alias{names,GIntervalTree-method}
+\alias{seqinfo,GIntervalTree-method}
+\alias{score,GIntervalTree-method}
 
+% Ranges methods:
+\alias{start,GIntervalTree-method}
+\alias{end,GIntervalTree-method}
+\alias{width,GIntervalTree-method}
+
+% Vector methods:
+\alias{length,GIntervalTree-method}
+\alias{[,GIntervalTree-method}
 
 \title{GIntervalTree objects}
 
@@ -278,7 +293,7 @@
   %     \code{mcols(x)$name} and \code{mcols(x)$name <- value}, instead
   %     of \code{x$name} and \code{x$name <- value}, respectively.
   %   }
-  % }
+   }
 }
 
 \section{Other methods}{
