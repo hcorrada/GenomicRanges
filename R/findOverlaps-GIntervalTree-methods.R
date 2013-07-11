@@ -16,7 +16,7 @@ setMethod("findOverlaps", c("GenomicRanges", "GIntervalTree"),
     ## same reference genome.
     seqinfo <- merge(seqinfo(query), seqinfo(subject))
     
-    hits <- findOverlaps(ranges(query), ranges(subject),
+    hits <- findOverlaps(ranges(query), subject@ranges,
                             maxgap=maxgap,minoverlap=minoverlap,
                             type=type,select="all",
                             partition=seqnames(query))

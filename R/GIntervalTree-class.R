@@ -21,7 +21,7 @@ setClass("GIntervalTree",
 )
 
 .valid.GIntervalTree.length <- function(x) {
-  n <- length(ranges(x))
+  n <- length(x@ranges)
   if ((length(strand(x)) != n)
       || (nrow(mcols(x)) != n))
     return("slot lengths are not all equal")
@@ -29,8 +29,8 @@ setClass("GIntervalTree",
 }
 
 .valid.GIntervalTree.ranges <- function(x) {
-  if (class(ranges(x)) != "IntervalForest")
-    return("'ranges(x)' must be a PartitionedIntervalTree instance")
+  if (class(x@ranges) != "IntervalForest")
+    return("'ranges(x)' must be a IntervalForest instance")
   NULL
 }
 
@@ -46,13 +46,12 @@ setValidity2("GIntervalTree", .valid.GIntervalTree)
 
 #' seqnames accessor 
 #' 
-#' this walks through the Interval Trees, should be avoided
 #' 
 #' @rdname GIntervalTree-class
 #' @family GIntervalTree
 #' @export
 #' @importMethodsFrom GenomicRanges seqnames
-setMethod("seqnames", "GIntervalTree", function(x) (ranges(x)@partition))
+setMethod("seqnames", "GIntervalTree", function(x) (x@ranges@partition))
 
 #' ranges accessor
 #' 
@@ -60,7 +59,7 @@ setMethod("seqnames", "GIntervalTree", function(x) (ranges(x)@partition))
 #' @family GIntervalTree
 #' @export
 #' @importMethodsFrom GenomicRanges ranges
-setMethod("ranges", "GIntervalTree", function(x) x@ranges)
+setMethod("ranges", "GIntervalTree", function(x) as(x@ranges, "IRanges"))
 
 #' strand accessor
 #' 
@@ -78,14 +77,17 @@ setMethod("strand", "GIntervalTree", function(x) x@strand)
 #' @importMethodsFrom GenomicRanges seqinfo
 setMethod("seqinfo", "GIntervalTree", function(x) x@seqinfo)
 
+setMethod("start", "GIntervalTree", function(x, ...) start(x@ranges))
+setMethod("end", "GIntervalTree", function(x, ...) end(x@ranges))
+setMethod("width", "GIntervalTree", function(x) width(x@ranges))
+
 #' length accessor
 #' 
-#' The GenomicRanges method uses seqnames which we should avoid in GIntervalTree
 #' 
 #' @rdname GIntervalTree-class
 #' @family GIntervalTree
 #' @export
-setMethod("length", "GIntervalTree", function(x) length(ranges(x)))
+setMethod("length", "GIntervalTree", function(x) length(x@ranges))
 
 #' construct from GRanges object via coercion
 #' 
@@ -123,11 +125,11 @@ GIntervalTree <- function(x) {
 setAs("GIntervalTree", "GRanges",
       function(from) {
         out=new("GRanges",
-                seqnames=(ranges(from)@partition),
+                seqnames=(from@ranges@partition),
                 strand=strand(from),
                 elementMetadata=mcols(from),
                 seqinfo=seqinfo(from),
-                ranges=as(ranges(from), "IRanges"))
+                ranges=ranges(from))
       }
 )
 
