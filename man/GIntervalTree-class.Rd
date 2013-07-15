@@ -69,10 +69,9 @@
   \describe{
     \item{\code{ranges}}{an \link[IRanges]{IntervalForest} object containing
       the ranges stored as a set of interval trees.}
-    \item{\code{seqnames}}{in this class, these are not stored directly, but are stored
-    as the \code{partition} component of the \link[IRanges]{IntervalForest} object stored
-    in \code{ranges}.
-      containing the sequence names.}
+    \item{\code{seqnames}}{these are not stored directly in this class, but are obtained from
+    the \code{partitioning} component of the \link[IRanges]{IntervalForest} object stored
+    in \code{ranges}.}
   }
 
   Note that \code{GIntervalTree} objects are not supported for \link{GRanges} objects
@@ -82,7 +81,7 @@
 \section{Constructor}{
   \describe{
     \item{}{
-      \code{GIntervalTree(x)}: Creates a GIntervalTree object from a \link{GRanges}
+      \code{GIntervalTree(x)}: Creates a \code{GIntervalTree} object from a \link{GRanges}
             object.
       \describe{
         \item{\code{x}}{a \link{GRanges} object containing the genomic ranges.}
@@ -94,8 +93,10 @@
 \section{Coercion}{
   \describe{
     \item{}{
-      \code{as(from, "GIntervalTree")}: Creates a GIntervalTree object from a
+      \code{as(from, "GIntervalTree")}: Creates a \code{GIntervalTree} object from a
       \link{GRanges} object.
+      \code{as(from, "GRanges")}: Creates a \link{GRanges} object from an
+      \code{GIntervalTree} object
     }
   }
 }
@@ -200,12 +201,12 @@
       \code{mcols(x)[,j]}, where \code{i} can be missing; an NA-free
       logical, numeric, or character vector; or a 'logical' Rle object.
     }
-    \item{}{
-      \code{head(x, n = 6L)}:
-      If \code{n} is non-negative, returns the first n elements of the
-      GIntervalTree object.
-      If \code{n} is negative, returns all but the last \code{abs(n)} elements
-      of the GIntervalTree object.
+    % \item{}{
+    %   \code{head(x, n = 6L)}:
+    %   If \code{n} is non-negative, returns the first n elements of the
+    %   GIntervalTree object.
+    %   If \code{n} is negative, returns all but the last \code{abs(n)} elements
+    %   of the GIntervalTree object.
     }
     % \item{}{
     %   \code{rep(x, times, length.out, each)}:
@@ -247,13 +248,13 @@
     %   using logical vector \code{subset}, where missing values are taken as
     %   \code{FALSE}.
     % }
-    \item{}{
-      \code{tail(x, n = 6L)}:
-      If \code{n} is non-negative, returns the last n elements of the
-      GRanges object.
-      If \code{n} is negative, returns all but the first \code{abs(n)} elements
-      of the GRanges object.
-    }
+    % \item{}{
+    %   \code{tail(x, n = 6L)}:
+    %   If \code{n} is non-negative, returns the last n elements of the
+    %   GRanges object.
+    %   If \code{n} is negative, returns all but the first \code{abs(n)} elements
+    %   of the GRanges object.
+    % }
   %   \item{}{
   %     \code{window(x, start = NA, end = NA, width = NA, frequency = NULL, delta = NULL, ...)}:
   %     Extracts the subsequence window from the GRanges object using:
