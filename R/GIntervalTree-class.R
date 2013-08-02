@@ -48,7 +48,7 @@ setClass("GIntervalTree",
     .valid.GIntervalTree.rngidx(x),
     .valid.GenomicRanges.strand(x),
     .valid.GenomicRanges.mcols(x),
-    .valid.GenomicRanges.seqinfo(x))
+    valid.GenomicRanges.seqinfo(x))
 }
 
 setValidity2("GIntervalTree", .valid.GIntervalTree)
