@@ -84,7 +84,8 @@ setValidity2("GIntervalTree", .valid.GIntervalTree)
 #' @family GIntervalTree
 #' @export
 #' @importMethodsFrom GenomicRanges seqnames
-setMethod("seqnames", "GIntervalTree", function(x) Rle(.GT_reorderValue(x, space(x@ranges))))
+setMethod("seqnames", "GIntervalTree",
+          function(x) Rle(.GT_reorderValue(x, space(x@ranges))))
 
 #' ranges accessor
 #' 
@@ -92,7 +93,8 @@ setMethod("seqnames", "GIntervalTree", function(x) Rle(.GT_reorderValue(x, space
 #' @family GIntervalTree
 #' @export
 #' @importMethodsFrom GenomicRanges ranges
-setMethod("ranges", "GIntervalTree", function(x) .GT_reorderValue(x, as(x@ranges, "IRanges")))
+setMethod("ranges", "GIntervalTree",
+          function(x) .GT_reorderValue(x, as(x@ranges, "IRanges")))
 
 #' strand accessor
 #' 
@@ -110,9 +112,12 @@ setMethod("strand", "GIntervalTree", function(x) x@strand)
 #' @importMethodsFrom GenomicRanges seqinfo
 setMethod("seqinfo", "GIntervalTree", function(x) x@seqinfo)
 
-setMethod("start", "GIntervalTree", function(x, ...) .GT_reorderValue(x,start(x@ranges, ...)@unlistData))
-setMethod("end", "GIntervalTree", function(x, ...) .GT_reorderValue(x, end(x@ranges, ...)@unlistData))
-setMethod("width", "GIntervalTree", function(x) .GT_reorderValue(x, width(x@ranges)@unlistData))
+setMethod("start", "GIntervalTree",
+          function(x, ...) .GT_reorderValue(x,start(x@ranges, ...)@unlistData))
+setMethod("end", "GIntervalTree",
+          function(x, ...) .GT_reorderValue(x, end(x@ranges, ...)@unlistData))
+setMethod("width", "GIntervalTree",
+          function(x) .GT_reorderValue(x, width(x@ranges)@unlistData))
 
 #' length accessor
 #' 

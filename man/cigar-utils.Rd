@@ -10,19 +10,19 @@
 \alias{explodeCigarOpLengths}
 \alias{cigarToRleList}
 
-\alias{cigarRangesOnReferenceSpace}
-\alias{cigarRangesOnQuerySpace}
-\alias{cigarRangesOnPairwiseSpace}
+\alias{cigarOpTable}
+
+\alias{cigarRangesAlongReferenceSpace}
+\alias{cigarRangesAlongQuerySpace}
+\alias{cigarRangesAlongPairwiseSpace}
 \alias{extractAlignmentRangesOnReference}
 
-\alias{cigarWidthOnReferenceSpace}
-\alias{cigarWidthOnQuerySpace}
-\alias{cigarWidthOnPairwiseSpace}
+\alias{cigarWidthAlongReferenceSpace}
+\alias{cigarWidthAlongQuerySpace}
+\alias{cigarWidthAlongPairwiseSpace}
 
 \alias{cigarNarrow}
 \alias{cigarQNarrow}
-
-\alias{cigarOpTable}
 
 \alias{queryLoc2refLoc}
 \alias{queryLocs2refLocs}
@@ -55,40 +55,41 @@ explodeCigarOps(cigar, ops=CIGAR_OPS)
 explodeCigarOpLengths(cigar, ops=CIGAR_OPS)
 cigarToRleList(cigar)
 
+## -=-= Summarize CIGARs =-=-
+cigarOpTable(cigar)
+
 ## -=-= From CIGARs to ranges =-=-
-cigarRangesOnReferenceSpace(cigar, flag=NULL,
+cigarRangesAlongReferenceSpace(cigar, flag=NULL,
         N.regions.removed=FALSE, pos=1L, f=NULL,
         ops=CIGAR_OPS, drop.empty.ranges=FALSE, reduce.ranges=FALSE,
         with.ops=FALSE)
 
-cigarRangesOnQuerySpace(cigar, flag=NULL,
+cigarRangesAlongQuerySpace(cigar, flag=NULL,
         before.hard.clipping=FALSE, after.soft.clipping=FALSE,
         ops=CIGAR_OPS, drop.empty.ranges=FALSE, reduce.ranges=FALSE,
         with.ops=FALSE)
 
-cigarRangesOnPairwiseSpace(cigar, flag=NULL,
-        N.regions.removed=FALSE,
+cigarRangesAlongPairwiseSpace(cigar, flag=NULL,
+        N.regions.removed=FALSE, dense=FALSE,
         ops=CIGAR_OPS, drop.empty.ranges=FALSE, reduce.ranges=FALSE,
         with.ops=FALSE)
 
-extractAlignmentRangesOnReference(cigar, pos=1L, drop.D.ranges=FALSE, f=NULL)
+extractAlignmentRangesOnReference(cigar, pos=1L,
+        drop.D.ranges=FALSE, f=NULL)
 
 ## -=-= From CIGARs to sequence lengths =-=-
-cigarWidthOnReferenceSpace(cigar, flag=NULL,
+cigarWidthAlongReferenceSpace(cigar, flag=NULL,
         N.regions.removed=FALSE)
 
-cigarWidthOnQuerySpace(cigar, flag=NULL,
+cigarWidthAlongQuerySpace(cigar, flag=NULL,
         before.hard.clipping=FALSE, after.soft.clipping=FALSE)
 
-cigarWidthOnPairwiseSpace(cigar, flag=NULL,
-        N.regions.removed=FALSE)
+cigarWidthAlongPairwiseSpace(cigar, flag=NULL,
+        N.regions.removed=FALSE, dense=FALSE)
 
 ## -=-= Narrow CIGARs =-=-
 cigarNarrow(cigar, start=NA, end=NA, width=NA)
 cigarQNarrow(cigar, start=NA, end=NA, width=NA)
-
-## -=-= Summarize CIGARs =-=-
-cigarOpTable(cigar)
 
 ## -=-= Translate coordinates between query and reference spaces =-=-
 queryLoc2refLoc(qloc, cigar, pos=1L)
@@ -112,22 +113,23 @@ queryLocs2refLocs(qlocs, cigar, pos=1L, flag=NULL)
 
     According to the SAM Spec v1.4, flag bit 0x4 is the only reliable place
     to tell whether a segment (or read) is mapped (bit is 0) or not (bit
-    is 1). If \code{flag} is supplied, then \code{cigarRangesOnReferenceSpace},
-    \code{cigarRangesOnQuerySpace}, \code{cigarRangesOnPairwiseSpace}, and
-    \code{extractAlignmentRangesOnReference} don't produce any range for
-    unmapped reads i.e. they treat them as if their CIGAR was empty
+    is 1). If \code{flag} is supplied, then
+    \code{cigarRangesAlongReferenceSpace}, \code{cigarRangesAlongQuerySpace},
+    \code{cigarRangesAlongPairwiseSpace}, and
+    \code{extractAlignmentRangesOnReference} don't produce any range
+    for unmapped reads i.e. they treat them as if their CIGAR was empty
     (independently of what their CIGAR is). If \code{flag} is supplied, then
-    \code{cigarWidthOnReferenceSpace}, \code{cigarWidthOnQuerySpace}, and
-    \code{cigarWidthOnPairwiseSpace} return \code{NA}s for unmapped reads.
+    \code{cigarWidthAlongReferenceSpace}, \code{cigarWidthAlongQuerySpace}, and
+    \code{cigarWidthAlongPairwiseSpace} return \code{NA}s for unmapped reads.
   }
   \item{N.regions.removed}{
     \code{TRUE} or \code{FALSE}.
-    If \code{TRUE}, then \code{cigarRangesOnReferenceSpace} and
-    \code{cigarWidthOnReferenceSpace} report ranges/widths with respect
+    If \code{TRUE}, then \code{cigarRangesAlongReferenceSpace} and
+    \code{cigarWidthAlongReferenceSpace} report ranges/widths with respect
     to the "reference" space from which the N regions have been removed,
-    and \code{cigarRangesOnPairwiseSpace} and \code{cigarWidthOnPairwiseSpace}
-    report them with respect to the "pairwise" space from which the N
-    regions have been removed.
+    and \code{cigarRangesAlongPairwiseSpace} and
+    \code{cigarWidthAlongPairwiseSpace} report them with respect to
+    the "pairwise" space from which the N regions have been removed.
   }
   \item{pos}{
     An integer vector containing the 1-based leftmost
@@ -162,19 +164,26 @@ queryLocs2refLocs(qlocs, cigar, pos=1L, flag=NULL)
   }
   \item{before.hard.clipping}{
     \code{TRUE} or \code{FALSE}.
-    If \code{TRUE}, then \code{cigarRangesOnQuerySpace} and
-    \code{cigarWidthOnQuerySpace} report ranges/widths with respect
+    If \code{TRUE}, then \code{cigarRangesAlongQuerySpace} and
+    \code{cigarWidthAlongQuerySpace} report ranges/widths with respect
     to the "query" space to which the H regions have been added.
     \code{before.hard.clipping} and \code{after.soft.clipping} cannot
     both be \code{TRUE}.
   }
   \item{after.soft.clipping}{
     \code{TRUE} or \code{FALSE}.
-    If \code{TRUE}, then \code{cigarRangesOnQuerySpace} and
-    \code{cigarWidthOnQuerySpace} report ranges/widths with respect
+    If \code{TRUE}, then \code{cigarRangesAlongQuerySpace} and
+    \code{cigarWidthAlongQuerySpace} report ranges/widths with respect
     to the "query" space from which the S regions have been removed.
     \code{before.hard.clipping} and \code{after.soft.clipping} cannot
     both be \code{TRUE}.
+  }
+  \item{dense}{
+    \code{TRUE} or \code{FALSE}.
+    If \code{TRUE}, then \code{cigarRangesAlongPairwiseSpace} and
+    \code{cigarWidthAlongPairwiseSpace} report ranges/widths with respect to
+    the "pairwise" space from which the I, D, and N regions have been removed.
+    \code{N.regions.removed} and \code{dense} cannot both be \code{TRUE}.
   }
   \item{drop.D.ranges}{
     Should the ranges corresponding to a deletion from the
@@ -221,8 +230,12 @@ queryLocs2refLocs(qlocs, cigar, pos=1L, flag=NULL)
 
   For \code{cigarToRleList}: A \link[IRanges]{CompressedRleList} object.
 
-  For \code{cigarRangesOnReferenceSpace}, \code{cigarRangesOnQuerySpace},
-  \code{cigarRangesOnPairwiseSpace}, and
+  For \code{cigarOpTable}: An integer matrix with number of rows equal
+  to the length of \code{cigar} and nine columns, one for each extended
+  CIGAR operation.
+
+  For \code{cigarRangesAlongReferenceSpace}, \code{cigarRangesAlongQuerySpace},
+  \code{cigarRangesAlongPairwiseSpace}, and
   \code{extractAlignmentRangesOnReference}: An \link[IRanges]{IRangesList}
   object (more precisely a \link[IRanges]{CompressedIRangesList} object)
   with 1 list element per element in \code{cigar}.
@@ -231,15 +244,16 @@ queryLocs2refLocs(qlocs, cigar, pos=1L, flag=NULL)
   object (instead of \link[IRanges]{CompressedIRangesList}), and it has
   1 list element per level in \code{f} and is named with those levels.
 
-  For \code{cigarWidthOnReferenceSpace} and \code{cigarWidthOnPairwiseSpace}:
-  An integer vector of the same length as \code{cigar} where each element is
-  the width of the alignment with respect to the "reference" and "pairwise"
-  space, respectively. More precisely, for \code{cigarWidthOnReferenceSpace},
-  the returned widths are the lengths of the alignments on the reference,
+  For \code{cigarWidthAlongReferenceSpace} and
+  \code{cigarWidthAlongPairwiseSpace}: An integer vector of the same
+  length as \code{cigar} where each element is the width of the alignment
+  with respect to the "reference" and "pairwise" space, respectively.
+  More precisely, for \code{cigarWidthAlongReferenceSpace}, the returned
+  widths are the lengths of the alignments on the reference,
   N gaps included (except if \code{N.regions.removed} is \code{TRUE}).
   NAs or \code{"*"} in \code{cigar} will produce NAs in the returned vector.
 
-  For \code{cigarWidthOnQuerySpace}: An integer vector of the same
+  For \code{cigarWidthAlongQuerySpace}: An integer vector of the same
   length as \code{cigar} where each element is the length of the corresponding
   query sequence as inferred from the CIGAR string. Note that, by default
   (i.e. if \code{before.hard.clipping} and \code{after.soft.clipping} are
@@ -255,10 +269,6 @@ queryLocs2refLocs(qlocs, cigar, pos=1L, flag=NULL)
   vector of the same length as \code{cigar}. It contains the values that
   would need to be added to the POS field of a SAM/BAM file as a
   consequence of this cigar narrowing.
-
-  For \code{cigarOpTable}: An integer matrix with number of rows equal
-  to the length of \code{cigar} and nine columns, one for each extended
-  CIGAR operation.
 
   For \code{queryLoc2refLoc}: An integer vector of the same length as
   \code{qloc} containing the "reference-based locations" (i.e. the
@@ -282,7 +292,7 @@ queryLocs2refLocs(qlocs, cigar, pos=1L, flag=NULL)
 \seealso{
   \itemize{
     \item The \link[Rsamtools]{sequenceLayer} function in the \pkg{Rsamtools}
-          package for laying the query sequences to the "reference" or
+          package for laying the query sequences alongside the "reference" or
           "pairwise" spaces.
 
     \item The \link{GAlignments} container for storing a set of genomic
@@ -297,90 +307,80 @@ queryLocs2refLocs(qlocs, cigar, pos=1L, flag=NULL)
 }
 
 \examples{
+## ---------------------------------------------------------------------
+## A. CIGAR_OPS, explodeCigarOps(), explodeCigarOpLengths(),
+##    cigarToRleList(), and cigarOpTable()
+## ---------------------------------------------------------------------
+
+## Supported CIGAR operations:
 CIGAR_OPS
 
-## ---------------------------------------------------------------------
-## A. ON A SINGLE CIGAR
-## ---------------------------------------------------------------------
+## Transform CIGARs into other useful representations:
 cigar1 <- "3H15M55N4M2I6M2D5M6S"
-
-## cigarRangesOnReferenceSpace():
-cigarRangesOnReferenceSpace(cigar1, with.ops=TRUE)[[1]]
-
-cigarRangesOnReferenceSpace(cigar1,
-                            reduce.ranges=TRUE, with.ops=TRUE)[[1]]
-
-ops <- setdiff(CIGAR_OPS, "N")
-
-cigarRangesOnReferenceSpace(cigar1, ops=ops, with.ops=TRUE)[[1]]
-
-cigarRangesOnReferenceSpace(cigar1, ops=ops,
-                            reduce.ranges=TRUE, with.ops=TRUE)[[1]]
-
-ops <- setdiff(CIGAR_OPS, c("D", "N"))
-
-cigarRangesOnReferenceSpace(cigar1, ops=ops, with.ops=TRUE)[[1]]
-
-## cigarWidthOnReferenceSpace()/cigarWidthOnQuerySpace():
-cigarWidthOnReferenceSpace(cigar1)
-cigarWidthOnQuerySpace(cigar1)
-cigarWidthOnQuerySpace(cigar1, before.hard.clipping=TRUE)
-
-## cigarNarrow():
-cigarNarrow(cigar1)  # only drops the soft/hard clipping
-cigarNarrow(cigar1, start=10)
-cigarNarrow(cigar1, start=15)
-cigarNarrow(cigar1, start=15, width=57)
-cigarNarrow(cigar1, start=16)
-#cigarNarrow(cigar1, start=16, width=55)  # ERROR! (empty cigar)
-cigarNarrow(cigar1, start=71)
-cigarNarrow(cigar1, start=72)
-cigarNarrow(cigar1, start=75)
-
-## cigarQNarrow():
-cigarQNarrow(cigar1, start=4, end=-3)
-cigarQNarrow(cigar1, start=10)
-cigarQNarrow(cigar1, start=19)
-cigarQNarrow(cigar1, start=24)
-
-## ---------------------------------------------------------------------
-## B. ON A VECTOR CONTAINING MORE THAN ONE CIGAR
-## ---------------------------------------------------------------------
 cigar2 <- c("40M2I9M", cigar1, "2S10M2000N15M", "3H33M5H")
 
-## Transform CIGARs into other useful representations:
 explodeCigarOps(cigar2)
 explodeCigarOpLengths(cigar2)
 explodeCigarOpLengths(cigar2, ops=c("I", "S"))
 cigarToRleList(cigar2)
 
-## From CIGARs to ranges:
-pos <- c(1, 1001, 1,  351)
-cigarRangesOnReferenceSpace(cigar2, pos=pos, with.ops=TRUE)
-cigarRangesOnQuerySpace(cigar2, with.ops=TRUE)
-cigarRangesOnPairwiseSpace(cigar2, with.ops=TRUE)
+## Summarize CIGARs:
+cigarOpTable(cigar2)
 
-res1a <- extractAlignmentRangesOnReference(cigar2, pos=pos)
-res1b <- cigarRangesOnReferenceSpace(cigar2,
-                                     pos=pos,
-                                     ops=setdiff(CIGAR_OPS, "N"),
-                                     reduce.ranges=TRUE)
+## ---------------------------------------------------------------------
+## B. From CIGARs to ranges and to sequence lengths
+## ---------------------------------------------------------------------
+
+## CIGAR ranges along the "reference" space:
+cigarRangesAlongReferenceSpace(cigar1, with.ops=TRUE)[[1]]
+
+cigarRangesAlongReferenceSpace(cigar1,
+                               reduce.ranges=TRUE, with.ops=TRUE)[[1]]
+
+ops <- setdiff(CIGAR_OPS, "N")
+
+cigarRangesAlongReferenceSpace(cigar1, ops=ops, with.ops=TRUE)[[1]]
+
+cigarRangesAlongReferenceSpace(cigar1, ops=ops,
+                               reduce.ranges=TRUE, with.ops=TRUE)[[1]]
+
+ops <- setdiff(CIGAR_OPS, c("D", "N"))
+
+cigarRangesAlongReferenceSpace(cigar1, ops=ops, with.ops=TRUE)[[1]]
+
+cigarWidthAlongReferenceSpace(cigar1)
+
+pos2 <- c(1, 1001, 1,  351)
+
+cigarRangesAlongReferenceSpace(cigar2, pos=pos2, with.ops=TRUE)
+
+res1a <- extractAlignmentRangesOnReference(cigar2, pos=pos2)
+res1b <- cigarRangesAlongReferenceSpace(cigar2,
+                               pos=pos2,
+                               ops=setdiff(CIGAR_OPS, "N"),
+                               reduce.ranges=TRUE)
 stopifnot(identical(res1a, res1b))
 
-res2a <- extractAlignmentRangesOnReference(cigar2, pos=pos,
-                                           drop.D.ranges=TRUE)
-res2b <- cigarRangesOnReferenceSpace(cigar2,
-                                     pos=pos,
-                                     ops=setdiff(CIGAR_OPS, c("D", "N")),
-                                     reduce.ranges=TRUE)
+res2a <- extractAlignmentRangesOnReference(cigar2, pos=pos2,
+                               drop.D.ranges=TRUE)
+res2b <- cigarRangesAlongReferenceSpace(cigar2,
+                               pos=pos2,
+                               ops=setdiff(CIGAR_OPS, c("D", "N")),
+                               reduce.ranges=TRUE)
 stopifnot(identical(res2a, res2b))
 
 seqnames <- factor(c("chr6", "chr6", "chr2", "chr6"),
                    levels=c("chr2", "chr6"))
-extractAlignmentRangesOnReference(cigar2, pos=pos, f=seqnames)
+extractAlignmentRangesOnReference(cigar2, pos=pos2, f=seqnames)
 
-## Summarize CIGARs:
-cigarOpTable(cigar2)
+## CIGAR ranges along the "query" space:
+cigarRangesAlongQuerySpace(cigar2, with.ops=TRUE)
+cigarWidthAlongQuerySpace(cigar1)
+cigarWidthAlongQuerySpace(cigar1, before.hard.clipping=TRUE)
+
+## CIGAR ranges along the "pairwise" space:
+cigarRangesAlongPairwiseSpace(cigar2, with.ops=TRUE)
+cigarRangesAlongPairwiseSpace(cigar2, dense=TRUE, with.ops=TRUE)
 
 ## ---------------------------------------------------------------------
 ## C. PERFORMANCE
@@ -449,6 +449,27 @@ extractCoverageFromBAM <- function(file)
 library(Rsamtools)
 f1 <- system.file("extdata", "ex1.bam", package="Rsamtools")
 extractCoverageFromBAM(f1)
+
+## ---------------------------------------------------------------------
+## E. cigarNarrow() and cigarQNarrow()
+## ---------------------------------------------------------------------
+
+## cigarNarrow():
+cigarNarrow(cigar1)  # only drops the soft/hard clipping
+cigarNarrow(cigar1, start=10)
+cigarNarrow(cigar1, start=15)
+cigarNarrow(cigar1, start=15, width=57)
+cigarNarrow(cigar1, start=16)
+#cigarNarrow(cigar1, start=16, width=55)  # ERROR! (empty cigar)
+cigarNarrow(cigar1, start=71)
+cigarNarrow(cigar1, start=72)
+cigarNarrow(cigar1, start=75)
+
+## cigarQNarrow():
+cigarQNarrow(cigar1, start=4, end=-3)
+cigarQNarrow(cigar1, start=10)
+cigarQNarrow(cigar1, start=19)
+cigarQNarrow(cigar1, start=24)
 }
 
 \keyword{manip}

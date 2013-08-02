@@ -261,7 +261,8 @@ setMethod("as.data.frame", "GenomicRanges",
             names(x) <- NULL
         mcols_df <- as.data.frame(mcols(x), ...)
         if (length(extraColumnSlotNames(x)) > 0L)
-            mcols_df <- cbind(as.data.frame(extraColumnSlots(x), ...), mcols_df)
+            mcols_df <- cbind(as.data.frame(extraColumnSlotsAsDF(x), ...),
+                              mcols_df)
         data.frame(seqnames=as.factor(seqnames(x)),
                    start=start(x),
                    end=end(x),
@@ -619,7 +620,7 @@ setReplaceMethod("[", "GenomicRanges",
         ans_ecs <- do.call(rbind, lapply(x, extraColumnSlotsAsDF))
         do.call(new, c(list(ans_class, seqnames=ans_seqnames, ranges=ans_ranges,
                             strand=ans_strand, elementMetadata=ans_mcols,
-                            seqinfo=ans_seqinfo), ans_ecs))
+                            seqinfo=ans_seqinfo), as.list(ans_ecs)))
     } else {
         new(ans_class, seqnames=ans_seqnames, ranges=ans_ranges,
             strand=ans_strand, elementMetadata=ans_mcols, seqinfo=ans_seqinfo)
@@ -821,3 +822,11 @@ setMethod("show", "GenomicRanges",
         showGenomicRanges(object, margin="  ",
                           with.classinfo=TRUE, print.seqlengths=TRUE)
 )
+
+setMethod("showAsCell", "GenomicRanges",
+          function(object) {
+            if (length(object) > 0L) {
+              paste0(seqnames(object), ":", strand(object), ":",
+                     showAsCell(ranges(object)))
+            } else character(0)
+          })
