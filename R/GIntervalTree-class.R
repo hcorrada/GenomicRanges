@@ -48,7 +48,7 @@ setClass("GIntervalTree",
     .valid.GIntervalTree.rngidx(x),
     .valid.GenomicRanges.strand(x),
     .valid.GenomicRanges.mcols(x),
-    valid.GenomicRanges.seqinfo(x))
+    .valid.GenomicRanges.seqinfo(x))
 }
 
 setValidity2("GIntervalTree", .valid.GIntervalTree)
@@ -186,8 +186,3 @@ setMethod("[", "GIntervalTree",
             gr <- callGeneric(as(x, "GRanges"),i=i, ...)
             as(gr, "GIntervalTree")
           })
-
-### - - - - - - - -
-### show setMethod
-### - - - - - - - - 
-setMethod("show", "GIntervalTree", function(object) show(as(object, "GRanges")))
