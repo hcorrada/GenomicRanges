@@ -175,7 +175,8 @@ setReplaceMethod("strand", "GAlignmentPairs",
 setReplaceMethod("elementMetadata", "GAlignmentPairs",
     function(x, ..., value)
     {
-        x@elementMetadata <- mk_elementMetadataReplacementValue(x, value)
+        value <- normalizeMetadataColumnsReplacementValue(value, x)
+        x@elementMetadata <- value
         x
     }
 )
@@ -312,20 +313,21 @@ readGAlignmentPairs <- function(file, format="BAM", use.names=FALSE, ...)
 ### Vector methods.
 ###
 
-setMethod("[", "GAlignmentPairs",
-    function(x, i, j, ... , drop=TRUE)
+setMethod(IRanges:::extractROWS, "GAlignmentPairs",
+    function(x, i)
     {
-        if (!missing(j) || length(list(...)) > 0L)
-            stop("invalid subsetting")
-        if (missing(i))
-            return(x)
-        i <- IRanges:::normalizeSingleBracketSubscript(i, x)
-        x@NAMES <- x@NAMES[i]
-        x@first <- x@first[i]
-        x@last <- x@last[i]
-        x@isProperPair <- x@isProperPair[i]
-        x@elementMetadata <- x@elementMetadata[i, , drop=FALSE]
-        x
+        if (missing(i) || !is(i, "Ranges"))
+            i <- IRanges:::normalizeSingleBracketSubscript(i, x)
+        ans_names <- IRanges:::extractROWS(names(x), i)
+        ans_first <- IRanges:::extractROWS(first(x), i)
+        ans_last <- IRanges:::extractROWS(last(x), i)
+        ans_isProperPair <- IRanges:::extractROWS(isProperPair(x), i)
+        ans_mcols <- IRanges:::extractROWS(mcols(x), i)
+        initialize(x, NAMES=ans_names,
+                      first=ans_first,
+                      last=ans_last,
+                      isProperPair=ans_isProperPair,
+                      elementMetadata=ans_mcols)
     }
 )
 
@@ -349,7 +351,7 @@ setMethod("[[", "GAlignmentPairs",
     {
         if (missing(i) || !missing(j) || length(list(...)) > 0L)
             stop("invalid subsetting")
-        i <- IRanges:::checkAndTranslateDbleBracketSubscript(x, i)
+        i <- IRanges:::normalizeDoubleBracketSubscript(i, x)
         .GAlignmentPairs.getElement(x, i)
     }
 )
@@ -461,6 +463,8 @@ setMethod("introns", "GAlignmentPairs",
 
 setAs("GAlignmentPairs", "GRangesList", function(from) grglist(from))
 setAs("GAlignmentPairs", "GRanges", function(from) granges(from))
+setAs("GAlignmentPairs", "GAlignments",
+      function(from) unlist(from, use.names=TRUE))
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### fillGaps()

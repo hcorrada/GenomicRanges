@@ -2,12 +2,12 @@
 
 \alias{makeSeqnameIds}
 
-\title{Assigns a unique ID to each unique sequence name}
+\title{Assign sequence IDs to sequence names}
 
 \description{
-    Assign a unique ID to each unique sequence name. The 
-    returned IDs span 1:N where N is the number of unique
-    sequence names provided.
+  \code{makeSeqnameIds} assigns a unique ID to each unique sequence name
+  in the input vector. The returned IDs span 1:N where N is the number of
+  unique sequence names in the input vector.
 }
 
 \usage{
@@ -16,21 +16,30 @@ makeSeqnameIds(seqnames, X.is.sexchrom=NA)
 
 \arguments{
   \item{seqnames}{
-    A character vector or factor of sequence names.
+    A character vector or factor containing sequence names.
   }
   \item{X.is.sexchrom}{
     A logical indicating whether X refers to the sexual chromosome 
-    or to chromosome with Roman Numeral X.
+    or to chromosome with Roman Numeral X. If \code{NA}, \code{makeSeqnameIds}
+    does its best to "guess".
   }
 }
 
 \value{
-  An integer vector the same length as \code{seqnames}. The values
-  span 1:N where N is the number of unique sequence names provided.
+  An integer vector of the same length as \code{seqnames}.
+  The values in the vector span 1:N where N is the number of unique
+  sequence names in the input vector.
 }
 
 \author{
   H. Pages
+}
+
+\seealso{
+  \itemize{
+    \item \code{\link{sortSeqlevels}} for sorting the sequence levels
+          of an object in "natural" order.
+  }
 }
 
 \examples{
